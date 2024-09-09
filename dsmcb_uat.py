@@ -85,7 +85,7 @@ def stream_output(response):
 
 ### HISTORY AWARE RETRIEVER FUNCTION
 def hist_aware_ret(prompt, conv_id):
-    vectordb = Chroma(persist_directory='./vectordbfiles_data', embedding_function=OpenAIEmbeddings())
+    vectordb = Chroma(persist_directory='./vectordbfiles_data/vectordbfiles_data', embedding_function=OpenAIEmbeddings())
     vectordb.get()
     
     ### Contextualize question ###
