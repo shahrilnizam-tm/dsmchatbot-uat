@@ -13,7 +13,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain, create_history_aware_retriever
 
 load_dotenv()
-os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
+os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY").strip()
 print(f"os.environ['OPENAI_API_KEY']: {os.environ['OPENAI_API_KEY']}")
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, max_tokens=None)
 
