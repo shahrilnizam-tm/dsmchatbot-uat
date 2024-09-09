@@ -1,6 +1,6 @@
 import os, time, mysql.connector, re, uuid, tiktoken
 import streamlit as st
-from langchain_chroma import Chroma
+from langchain_chroma.vectorstores import Chroma
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.chat_history import BaseChatMessageHistory
