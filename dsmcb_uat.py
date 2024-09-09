@@ -1,6 +1,3 @@
-!sudo apt-get update
-!sudo apt-get install sqlite3
-
 import os, time, mysql.connector, re, uuid, tiktoken
 import streamlit as st
 from langchain_chroma.vectorstores import Chroma
