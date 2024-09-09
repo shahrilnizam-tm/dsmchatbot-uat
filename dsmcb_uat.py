@@ -14,6 +14,7 @@ from langchain.chains import create_retrieval_chain, create_history_aware_retrie
 
 load_dotenv()
 os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
+print(f"os.environ['OPENAI_API_KEY']: {os.environ['OPENAI_API_KEY']}")
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, max_tokens=None)
 
 # config = {'user':'TM39869', 'password':'TM#9869', 'host':'172.21.131.208', 'database':'daml_prd'}
