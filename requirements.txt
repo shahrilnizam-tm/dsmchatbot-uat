@@ -1,0 +1,9 @@
+mysql-connector-python
+tiktoken
+streamlit
+langchain
+langchain-chroma
+langchain-openai
+langchain-community
+langchain-core
+langchain-text-splitters
