@@ -11,7 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain, create_history_aware_retriever
 
-os.environ['OPENAI_API_KEY'] = "sk-proj-8fSs7TL66qwuAxw0sjKCT3BlbkFJj4jkuDiMRf0AKy9wNpEG"
+os.environ['OPENAI_API_KEY'] = "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"
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, max_tokens=None)
 
 # config = {'user':'TM39869', 'password':'TM#9869', 'host':'172.21.131.208', 'database':'daml_prd'}
