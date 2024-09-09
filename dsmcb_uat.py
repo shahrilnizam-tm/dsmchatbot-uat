@@ -167,6 +167,7 @@ def run_chatbot():
         
         if "conv_id" not in st.session_state:
             st.session_state["conv_id"] = create_conversation_id()
+            print(st.session_state["conv_id"])
 
         if "messages" not in st.session_state:
             st.session_state.messages = []
