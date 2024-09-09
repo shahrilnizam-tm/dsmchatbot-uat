@@ -157,9 +157,7 @@ def hist_aware_ret(prompt, conv_id):
 
 ### MAIN FUNCTION
 def run_chatbot():
-    st.markdown("<h1 style='text-align: center; color: GREEN;'>DSM Centralised Chatbot</h3>", unsafe_allow_html=True)
-    st.info("\tSend anything to begin the chat! For any issues, please [report here](https://forms.office.com/r/qjjDU0RLyS). For job inventory related questions, it is recommended to use Data Repository Detail app.", icon="ℹ️")
-
+    
     if enter_staff_id():
 
         global dsmcb_sid
@@ -167,7 +165,11 @@ def run_chatbot():
         
         if "conv_id" not in st.session_state:
             st.session_state["conv_id"] = create_conversation_id()
-            print(st.session_state["conv_id"])
+            
+        st.markdown("<h1 style='text-align: center; color: GREEN;'>DSM Centralised Chatbot</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h6 style='text-align: center;'>User: {dsmcb_sid}, Conversation ID: {st.session_state['conv_id']}</h6>", unsafe_allow_html=True)
+        st.info("\tSend anything to begin the chat! For any issues, please [report here](https://forms.office.com/r/qjjDU0RLyS). For job inventory related questions, it is recommended to use Data Repository Detail app.", icon="ℹ️")
+
 
         if "messages" not in st.session_state:
             st.session_state.messages = []
