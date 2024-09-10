@@ -17,44 +17,6 @@ os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY").strip()
 print(f"os.environ['OPENAI_API_KEY']: {os.environ['OPENAI_API_KEY']}")
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, max_tokens=None)
 
-# config = {'user':'TM39869', 'password':'TM#9869', 'host':'172.21.131.208', 'database':'daml_prd'}
-# conn = mysql.connector.connect(**config)
-# create_cursor = conn.cursor()
-
-# create_conversation_table_query = """
-# CREATE TABLE IF NOT EXISTS temp_dsmcb_conversation(
-# int_id INT AUTO_INCREMENT PRIMARY KEY,
-# tm_sid TEXT NOT NULL,
-# conversation_id CHAR(36) NOT NULL,
-# user_query TEXT NOT NULL,
-# user_token DECIMAL(65, 30) NOT NULL,
-# user_price_usd DECIMAL(65, 30) NOT NULL,
-# openai_response TEXT NOT NULL,
-# response_token DECIMAL(65, 30) NOT NULL,
-# response_price_usd DECIMAL(65, 30) NOT NULL,
-# total_token DECIMAL(65, 30) NOT NULL,
-# total_price_usd DECIMAL(65, 30) NOT NULL,
-# completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-# time_taken DOUBLE NOT NULL
-# )
-# """
-# create_cursor.execute(create_conversation_table_query)
-
-### CREATE CONVERSATION_ID FUNCTION. CHECK ANY DUPLICATES > TAKE UUID
-def create_conversation_id():
-    conversation_id = str(uuid.uuid4())
-    # check_duplicate_query = "SELECT COUNT(*) FROM temp_dsmcb_conversation WHERE conversation_id = %s"
-    # chk_dup_cursor = conn.cursor()
-    # chk_dup_cursor.execute(check_duplicate_query, (conversation_id,))
-    # count = chk_dup_cursor.fetchone()[0]
-    # chk_dup_cursor.close()
-
-    # if count > 0:
-    #     return create_conversation_id()
-    # else:
-    #     return conversation_id
-    return conversation_id
-
 def chk_sid_regex():
     if re.search(r'[A-Za-z]{2}\d{4,}', st.session_state["dsmcb_sid"]):
         st.session_state["dsmcb_authenticated"] = True
@@ -63,7 +25,7 @@ def chk_sid_regex():
         st.session_state["dsmcb_authenticated"] = False
         st.error("Not a valid TM Staff ID")
 
-### ENTER TM STAFF ID > CREATE CONVERSATION ID
+### ENTER TM STAFF ID
 def enter_staff_id():
     if "dsmcb_authenticated" not in st.session_state:
         sid = st.text_input(label="Enter your TM Staff ID", value="", key="dsmcb_sid", on_change=chk_sid_regex)
@@ -85,7 +47,7 @@ def stream_output(response):
 
 ### HISTORY AWARE RETRIEVER FUNCTION
 def hist_aware_ret(prompt, conv_id):
-    vectordb = Chroma(persist_directory='./vectordbfiles_data/vectordbfiles_data', embedding_function=OpenAIEmbeddings())
+    vectordb = Chroma(persist_directory='./vectordbfiles_data', embedding_function=OpenAIEmbeddings())
     vectordb.get()
     
     ### Contextualize question ###
@@ -107,14 +69,11 @@ def hist_aware_ret(prompt, conv_id):
         llm, vectordb.as_retriever(), contextualize_q_prompt
     )
     
-    
     ### Answer question ###
     system_prompt = (
         "You are a fun and lively assistant for question-answering tasks. "
         "Use the following pieces of retrieved context to answer "
         "the question. If you don't know the answer, say that you don't know."
-        # "don't know. Use three sentences maximum and keep the "
-        # "answer concise."
         "\n\n"
         "{context}"
     )
@@ -129,14 +88,14 @@ def hist_aware_ret(prompt, conv_id):
     
     rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
     
-    
     ### Statefully manage chat history ###
-    store = {}
-
+    if 'store' not in st.session_state:
+        st.session_state['store'] = {}
+    
     def get_session_history(session_id: str) -> BaseChatMessageHistory:
-        if session_id not in store:
-            store[session_id] = ChatMessageHistory()
-        return store[session_id]
+        if session_id not in st.session_state['store']:
+            st.session_state['store'][session_id] = ChatMessageHistory()
+        return st.session_state['store'][session_id]
     
     conversational_rag_chain = RunnableWithMessageHistory(
         rag_chain,
@@ -157,19 +116,16 @@ def hist_aware_ret(prompt, conv_id):
 
 ### MAIN FUNCTION
 def run_chatbot():
-    
+    st.markdown("<h1 style='text-align: center; color: GREEN;'>DSM Centralised Chatbot</h3>", unsafe_allow_html=True)
+    st.info("\tSend anything to begin the chat! For any issues, please [report here](https://forms.office.com/r/qjjDU0RLyS). For job inventory related questions, it is recommended to use Data Repository Detail app.", icon="ℹ️")
+
     if enter_staff_id():
 
         global dsmcb_sid
         dsmcb_sid = st.session_state["TM_Staff_ID"]
         
         if "conv_id" not in st.session_state:
-            st.session_state["conv_id"] = create_conversation_id()
-            
-        st.markdown("<h1 style='text-align: center; color: GREEN;'>DSM Centralised Chatbot</h3>", unsafe_allow_html=True)
-        st.markdown(f"<h6 style='text-align: center;'>User: {dsmcb_sid}, Conversation ID: {st.session_state['conv_id']}</h6>", unsafe_allow_html=True)
-        st.info("\tSend anything to begin the chat! For any issues, please [report here](https://forms.office.com/r/qjjDU0RLyS). For job inventory related questions, it is recommended to use Data Repository Detail app.", icon="ℹ️")
-
+            st.session_state["conv_id"] = str(uuid.uuid4())
 
         if "messages" not in st.session_state:
             st.session_state.messages = []
@@ -195,39 +151,6 @@ def run_chatbot():
             user_price_usd = (user_tokens/1000000) * 0.15
             response_price_usd = (response_tokens/1000000) * 0.6
             total_price_usd = user_price_usd + response_price_usd
-    
-            # ### STORE THE CONVERSATION DETAILS INTO MARIADB
-            # insert_cursor = conn.cursor()
-            # insert_query = """
-            # INSERT INTO temp_dsmcb_conversation(
-            #     tm_sid,
-            #     conversation_id,
-            #     user_query,
-            #     user_token,
-            #     user_price_usd,
-            #     openai_response,
-            #     response_token,
-            #     response_price_usd,
-            #     total_token,
-            #     total_price_usd,
-            #     time_taken
-            # ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            # """
-            # values = (
-            #     dsmcb_sid,
-            #     st.session_state["conv_id"],
-            #     prompt,
-            #     user_tokens,
-            #     user_price_usd,
-            #     answer,
-            #     response_tokens,
-            #     response_price_usd,
-            #     total_tokens,
-            #     total_price_usd,
-            #     time_taken
-            # )
-            # insert_cursor.execute(insert_query, values)
-            # conn.commit()
 
             with st.chat_message("assistant"):
                 st.write_stream(stream_output(answer))
