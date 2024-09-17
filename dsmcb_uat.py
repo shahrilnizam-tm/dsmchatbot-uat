@@ -47,8 +47,10 @@ def stream_output(response):
 
 ### HISTORY AWARE RETRIEVER FUNCTION
 def hist_aware_ret(prompt, conv_id):
-    vectordb = Chroma(persist_directory='./vectordbfiles_data', embedding_function=OpenAIEmbeddings())
-    vectordb.get()
+    
+    if 'vectordb' not in st.session_state:    
+        st.session_state['vectordb'] = Chroma(persist_directory='./vectordbfiles_data/vectordbfiles_data', embedding_function=OpenAIEmbeddings())
+    st.session_state['vectordb'].get()
     
     ### Contextualize question ###
     contextualize_q_system_prompt = (
@@ -66,7 +68,7 @@ def hist_aware_ret(prompt, conv_id):
         ]
     )
     history_aware_retriever = create_history_aware_retriever(
-        llm, vectordb.as_retriever(), contextualize_q_prompt
+        llm, st.session_state['vectordb'].as_retriever(), contextualize_q_prompt
     )
     
     ### Answer question ###
